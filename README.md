@@ -16,6 +16,7 @@ This is an Android app that first asks a user if they want to play an Easy, Medi
 - Views that are composed of other views. For example, in this project, GridLayout contains a set of TextViews, which are presented according to the `columnCount` and `rowCount`.
 - Utilizing themes and styles to make views cleaner.
 - When to implement setOnClickListener inline, versus as a separate member function, versus outside of any classes, as a companion function. (Is that Kotlin-specific?)
+- Using Toast (pop-ups) to debug my code. Haha..
 
 
 ## Minor other bits and pieces that I experienced in passing:
