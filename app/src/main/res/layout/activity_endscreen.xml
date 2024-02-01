@@ -8,25 +8,20 @@
     android:padding="16dp"
     tools:context=".Game">
 
-
-    <GridLayout
-        android:id="@+id/gameLayout"
+    <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:padding="30dp"
-        android:theme="@style/MemCardTextView"
-        app:layout_constraintBottom_toTopOf="@id/backBtn"
+        android:text="@string/congrats"
+        app:layout_constraintBottom_toTopOf="@+id/restartBtn"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:context=".Game" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
         android:id="@+id/tries"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:layout_constraintBottom_toTopOf="@id/backBtn"
+        app:layout_constraintBottom_toTopOf="@id/restartBtn"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
@@ -34,7 +29,7 @@
         app:layout_constraintVertical_bias="0.975" />
 
     <Button
-        android:id="@+id/backBtn"
+        android:id="@+id/restartBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="96dp"

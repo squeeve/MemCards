@@ -3,6 +3,7 @@ package com.example.memcards
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.GridLayout
@@ -11,8 +12,27 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.res.ResourcesCompat
 
-class Game : AppCompatActivity() {
 
+
+class EndScreen : AppCompatActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_endscreen)
+
+        val intent = this.intent
+        val triesCt: Int = intent.getIntExtra("tries", -1)
+
+        val backButton = findViewById<Button>(R.id.restartBtn)
+        val tries = findViewById<TextView>(R.id.tries)
+        tries.setText("Tries: $triesCt ‼️")
+
+        backButton.setOnClickListener {
+            val restart = Intent(this, MainActivity::class.java)
+            startActivity(restart)
+        }
+    }
+}
+class Game : AppCompatActivity() {
     data class Card(
         var value: String,
         var index: Int = -1,
@@ -37,7 +57,7 @@ class Game : AppCompatActivity() {
             lastIndex.also { cardsArray[firstIndex].match = it }
             firstIndex.also { cardsArray[lastIndex].match = it }
         }
-        Toast.makeText(this, "level: $gridSize; length: ${useCards.size}", Toast.LENGTH_SHORT).show()
+        //Toast.makeText(this, "level: $gridSize; length: ${useCards.size}", Toast.LENGTH_SHORT).show()
         return cardsArray
     }
 
@@ -47,8 +67,12 @@ class Game : AppCompatActivity() {
 
         val intent = this.intent
         val gridSize: Int = intent.getIntExtra("level", 2)
+        var openedCard = false
+        var openedCardIndex: Int = -1
 
         setUpGameCards(gridSize)
+
+        var faces = cardsArray.size/2
 
         val gridLayout = findViewById<GridLayout>(R.id.gameLayout)
         gridLayout.columnCount = gridSize
@@ -60,7 +84,11 @@ class Game : AppCompatActivity() {
             gridLayout.setPadding(1,1,1,1)
         }
 
-        for (card in cardsArray) {
+        val tries = findViewById<TextView>(R.id.tries)
+        var ct = 0
+        tries.setText("Tries: $ct")
+
+        cardsArray.forEachIndexed { idx, card ->
             val textView = TextView(this)
             val param = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
@@ -68,22 +96,51 @@ class Game : AppCompatActivity() {
                 4.0f
             )
             textView.layoutParams = param
+            textView.id = idx
             textView.setBackground(ResourcesCompat.getDrawable(getResources(), R.drawable.border, null))
             textView.setText(R.string.card_back)
-
+            //textView.setOnClickListener(textViewListener)
             textView.setOnClickListener {
-
                 textView.setText(card.value)
-                Toast.makeText(this, "Something here!", Toast.LENGTH_SHORT).show()
-            }
-
+                    if (openedCard) {
+                        if (card.match == cardsArray[openedCardIndex].index) {
+                            Toast.makeText(this, "Found a match!", Toast.LENGTH_SHORT).show()
+                            card.matched = true
+                            cardsArray[openedCardIndex].matched = true
+                            textView.alpha = 0F
+                            textView.isClickable = false
+                            val firstCard = findViewById<TextView>(openedCardIndex)
+                            firstCard.alpha = 0F
+                            firstCard.isClickable = false
+                            if (--faces == 0) {
+                                val endScreen = Intent(this, EndScreen::class.java)
+                                    .putExtra("tries", ++ct)
+                                startActivity(endScreen)
+                            }
+                        } else {
+                            Toast.makeText(this, "Nope, sorry.. That was ${card.value} by the way", Toast.LENGTH_SHORT).show()
+                            cardsArray[openedCardIndex].matched = true
+                            val firstCard = findViewById<TextView>(openedCardIndex)
+                            firstCard.setText(R.string.card_back)
+                            textView.setText(R.string.card_back)
+                        }
+                        openedCard = false
+                        openedCardIndex = -1
+                        tries.setText("Tries: ${++ct}")
+                    } else {
+                        openedCard = true
+                        openedCardIndex = card.index
+                        //Toast.makeText(this, "Where's the match?? (id: ${textView.id})", Toast.LENGTH_SHORT).show()
+                    }
+                }
             gridLayout.addView(textView)
         }
-
         val backButton = findViewById<Button>(R.id.backBtn)
-        backButton.setOnClickListener {
-            val picker = Intent(this, MainActivity::class.java)
-            startActivity(picker)
-        }
+        backButton.setOnClickListener(backButtonListener)
+    }
+
+    private val backButtonListener = View.OnClickListener {
+        val main = Intent(this, MainActivity::class.java)
+        startActivity(main)
     }
 }

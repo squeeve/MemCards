@@ -5,6 +5,8 @@
     <string name="Hard">Hard</string>
     <string name="Return">Return to main</string>
     <string name="card_back">🌀</string>
+    <string name="congrats">🥳 AMAZING JOB!</string>
+    <string name="tries">Tries: %d </string>
     <string-array name="card_contents">
 
         <item>🦊</item>
