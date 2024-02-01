@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="memcard_launcher_background">#BDFFAB</color>
+    <style name="LevelBtnStyle">
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_margin">10dip</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:background">@color/memcard_launcher_background</item>
+        <item name="colorAccent">@color/grey</item>
+        <item name="android:paddingTop">20dp</item>
+        <item name="android:paddingBottom">20dp</item>
+        <item name="android:textAllCaps">true</item>
+    </style>
+</resources>

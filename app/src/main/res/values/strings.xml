@@ -1,0 +1,31 @@
+<resources>
+    <string name="app_name">MemCards</string>
+    <string name="Easy">Easy</string>
+    <string name="Medium">Medium</string>
+    <string name="Hard">Hard</string>
+    <string name="Return">Return to main</string>
+    <string name="card_back">🌀</string>
+    <string-array name="card_contents">
+
+        <item>🦊</item>
+        <item>🐒</item>
+        <item>🐱</item>
+        <item>🐭</item>
+        <item>🐸</item>
+        <item>🐞</item>
+        <item>🦋</item>
+        <item>🦉</item>
+        <item>🐍</item>
+        <item>🐳</item>
+        <item>🐡</item>
+        <item>🦀</item>
+        <item>🦄</item>
+        <item>🐊</item>
+        <item>🦃</item>
+        <item>🦚</item>
+        <item>🐲</item>
+        <item>🦩</item>
+        <item>🐁</item>
+
+    </string-array>
+</resources>

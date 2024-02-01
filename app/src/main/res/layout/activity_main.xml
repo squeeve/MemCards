@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp"
+    android:orientation="vertical"
+    android:background="@color/white"
+    android:gravity="center"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <Button style="@style/LevelBtnStyle"
+        android:id="@+id/easyButton"
+        android:text="@string/Easy" />
+
+    <Button style="@style/LevelBtnStyle"
+        android:id="@+id/mediumButton"
+        android:text="@string/Medium" />
+
+    <Button style="@style/LevelBtnStyle"
+        android:id="@+id/hardButton"
+        android:text="@string/Hard" />
+
+</LinearLayout>
