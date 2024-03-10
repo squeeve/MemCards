@@ -1,4 +1,4 @@
-package com.example.memcards
+package com.squeeve.memcards
 
 import android.content.Context
 
@@ -8,6 +8,11 @@ data class Card(
     var match: Int = -1,
     var matched: Boolean = false
 )
+
+/* game levels */
+internal const val EASY = 2
+internal const val MED = 4
+internal const val HARD = 6
 
 /* sets up list of cards and their matches */
 internal fun setUpGameCards(context: Context, gridSize: Int, cardsArray: MutableList<Card>): MutableList<Card> {

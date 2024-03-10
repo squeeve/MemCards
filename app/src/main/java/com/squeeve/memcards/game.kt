@@ -1,4 +1,4 @@
-package com.example.memcards
+package com.squeeve.memcards
 
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity

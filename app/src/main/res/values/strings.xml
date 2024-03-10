@@ -7,6 +7,7 @@
     <string name="card_back">🌀</string>
     <string name="congrats">🥳 AMAZING JOB!</string>
     <string name="tries">Tries: %d </string>
+    <string name="laughing_dragon">laughing dragon</string>
     <string-array name="card_contents">
 
         <item>🦊</item>
