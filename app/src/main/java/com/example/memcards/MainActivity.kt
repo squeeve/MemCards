@@ -9,7 +9,6 @@ import android.widget.Button
 
 
 class MainActivity : AppCompatActivity() {
-
     private val easy = 2
     private val med = 4
     private val hard = 6
@@ -23,6 +22,7 @@ class MainActivity : AppCompatActivity() {
         startGame.putExtra("level", level)
         startActivity(startGame)
     }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
