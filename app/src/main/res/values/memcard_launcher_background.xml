@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="memcard_launcher_background">#BDFFAB</color>
+    <color name="memcard_launcher_background">@color/red</color>
     <style name="LevelBtnStyle">
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_margin">10dip</item>

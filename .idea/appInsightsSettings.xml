@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.squeeve.memcards" />
+                  <option name="mobileSdkAppId" value="1:654527695620:android:c4623b9075be57d5d01e51" />
+                  <option name="projectId" value="memcards-5a78c" />
+                  <option name="projectNumber" value="654527695620" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

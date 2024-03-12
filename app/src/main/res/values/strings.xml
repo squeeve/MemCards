@@ -1,5 +1,16 @@
 <resources>
     <string name="app_name">MemCards</string>
+    <string name="app_name_fun">🙈 MemCards 🙊</string>
+
+    <!-- LOGIN/REGISTER PAGE STRINGS -->
+    <string name="email">EMAIL</string>
+    <string name="password">PASSWORD</string>
+    <string name="username">USERNAME</string>
+    <string name="login">LOGIN</string>
+    <string name="login_by_email">EMAIL MY LOGIN</string>
+    <string name="register">CREATE ACCOUNT</string>
+
+    <!-- GAME STRINGS -->
     <string name="Easy">Easy</string>
     <string name="Medium">Medium</string>
     <string name="Hard">Hard</string>
@@ -8,6 +19,8 @@
     <string name="congrats">🥳 AMAZING JOB!</string>
     <string name="tries">Tries: %d </string>
     <string name="laughing_dragon">laughing dragon</string>
+    <string name="forgot_password">FORGOT PASSWORD?</string>
+    <string name="forgot_email">FORGOT EMAIL?</string>
     <string-array name="card_contents">
 
         <item>🦊</item>
@@ -31,4 +44,6 @@
         <item>🐁</item>
 
     </string-array>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
