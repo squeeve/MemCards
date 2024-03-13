@@ -1,9 +1,10 @@
 package com.squeeve.memcards
 
+import android.app.AlertDialog
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.View
+import android.util.Log
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.GridLayout
@@ -19,12 +20,7 @@ class EndScreen : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_endscreen)
 
-        //val intent = this.intent
-        //val triesCt: Int = intent.getIntExtra("tries", -1)
-
         val backButton = findViewById<Button>(R.id.restartBtn)
-        //val tries = findViewById<TextView>(R.id.tries)
-        //tries.setText("Tries: $triesCt ‼️")
 
         backButton.setOnClickListener {
             val restart = Intent(this, MainActivity::class.java)
@@ -34,10 +30,23 @@ class EndScreen : AppCompatActivity() {
 }
 class Game : AppCompatActivity() {
     private var cardsArray = mutableListOf<Card>()
+    private val tag: String = "Game"
+     private fun showConfirmationDialog() {
+        Log.d(tag, "Entered showConfirmationDialog")
+        val builder = AlertDialog.Builder(this@Game)
+        builder.setTitle("Quitting affects your history...")
+        builder.setMessage("Are you really quitting now?")
 
-    private val backButtonListener = View.OnClickListener {
-        val main = Intent(this, MainActivity::class.java)
-        startActivity(main)
+        builder.setPositiveButton("Yes") { _, _ ->
+            val restart = Intent(this@Game, MainActivity2::class.java)
+            startActivity(restart)
+            finish()
+        }
+        builder.setNegativeButton("No") { dialog, _ ->
+            dialog.dismiss()
+        }
+        val dialog = builder.create()
+        dialog.show()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -119,7 +128,8 @@ class Game : AppCompatActivity() {
             gridLayout.addView(textView)
         }
         val backButton = findViewById<Button>(R.id.backBtn)
-        backButton.setOnClickListener(backButtonListener)
+        backButton.setOnClickListener {
+            showConfirmationDialog()
+        }
     }
-
 }
