@@ -22,7 +22,7 @@
             android:name=".LoginRegister"
             android:exported="false" />
         <activity
-            android:name=".Game"
+            android:name=".GameActivity"
             android:exported="false" />
         <activity
             android:name=".EndScreen"
