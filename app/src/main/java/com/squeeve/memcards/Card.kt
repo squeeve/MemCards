@@ -13,8 +13,10 @@ data class Card(
 internal const val EASY = 2
 internal const val MED = 4
 internal const val HARD = 6
+internal val LEVELS = mapOf("EASY" to EASY, "MED" to MED, "HARD" to HARD)
 
-/* sets up list of cards and their matches */
+
+// sets up list of cards, sets their matches, and then saves it in cardsArray.
 internal fun setUpGameCards(context: Context, gridSize: Int, cardsArray: MutableList<Card>): MutableList<Card> {
     val allCardContents = context.resources.getStringArray(R.array.card_contents)
     val useCards = allCardContents.slice(0..<(gridSize * gridSize) / 2)
@@ -29,6 +31,5 @@ internal fun setUpGameCards(context: Context, gridSize: Int, cardsArray: Mutable
         lastIndex.also { cardsArray[firstIndex].match = it }
         firstIndex.also { cardsArray[lastIndex].match = it }
     }
-    //Toast.makeText(this, "level: $gridSize; length: ${useCards.size}", Toast.LENGTH_SHORT).show()
     return cardsArray
 }

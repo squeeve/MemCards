@@ -20,25 +20,20 @@ class EndScreen : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_endscreen)
 
-        val backButton = findViewById<Button>(R.id.restartBtn)
-
-        backButton.setOnClickListener {
-            val restart = Intent(this, MainActivity::class.java)
-            startActivity(restart)
-        }
+        // We're changing EndScreen to be a leaderboard page w/ a possible fragment.
     }
 }
-class Game : AppCompatActivity() {
+class GameActivity : AppCompatActivity() {
     private var cardsArray = mutableListOf<Card>()
-    private val tag: String = "Game"
+    private val tag: String = "GameActivity"
      private fun showConfirmationDialog() {
         Log.d(tag, "Entered showConfirmationDialog")
-        val builder = AlertDialog.Builder(this@Game)
+        val builder = AlertDialog.Builder(this@GameActivity)
         builder.setTitle("Quitting affects your history...")
         builder.setMessage("Are you really quitting now?")
 
         builder.setPositiveButton("Yes") { _, _ ->
-            val restart = Intent(this@Game, MainActivity2::class.java)
+            val restart = Intent(this@GameActivity, MainActivity2::class.java)
             startActivity(restart)
             finish()
         }
@@ -77,7 +72,7 @@ class Game : AppCompatActivity() {
         //tries.setText("Tries: $ct")
 
         cardsArray.forEachIndexed { idx, card ->
-            val textView = TextView(this)
+            val textView = TextView(this@GameActivity)
             val param = LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 LinearLayout.LayoutParams.MATCH_PARENT,

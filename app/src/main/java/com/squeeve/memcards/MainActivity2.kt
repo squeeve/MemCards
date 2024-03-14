@@ -18,6 +18,7 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import kotlin.random.Random
 
 
 /* This activity actually uses the original activity_main layout file,
@@ -30,7 +31,7 @@ class MainActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSelect
     private lateinit var dbReference: DatabaseReference
 
     private fun gotoGame(level: Int) {
-        val startGame = Intent(this, Game::class.java)
+        val startGame = Intent(this, GameActivity::class.java)
         startGame.putExtra("level", level)
         startActivity(startGame)
     }
@@ -101,10 +102,14 @@ class MainActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSelect
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.menu_game -> Toast.makeText(
-                            this@MainActivity2,
-                            "Start Game",
-                            Toast.LENGTH_SHORT).show()
+            R.id.menu_game -> {
+                val level = LEVELS.entries.elementAt(Random.nextInt(LEVELS.size))
+                Toast.makeText(
+                    this@MainActivity2,
+                    "Starting game at ${level.key}",
+                    Toast.LENGTH_SHORT).show()
+                gotoGame(level.value)
+            }
             R.id.menu_leaderboard -> Toast.makeText(
                             this@MainActivity2,
                             "Go to leaderboard",
