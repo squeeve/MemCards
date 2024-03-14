@@ -12,6 +12,7 @@ import android.widget.EditText
 import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 
 
@@ -45,15 +46,22 @@ class RegisterFragment : Fragment() {
     }
 
     private fun saveUserToDB(username: String, email: String) {
-        val db: FirebaseDatabase = FirebaseDatabase.getInstance()
-        val usersRef = db.getReference("users")
-        currentUser.let { user ->
+        val userReference: DatabaseReference = FirebaseDatabase.getInstance().getReference("Users")
+        currentUser.let {
             val newUser = User(
                 username = username,
                 email = email,
             )
-            usersRef.child(user.uid).setValue(newUser)
+            userReference.child(currentUser.uid).setValue(newUser)
+                .addOnSuccessListener {
+                    Log.d(tag, "Data saved successfully")
+                }
+                .addOnFailureListener {
+                    Log.e(tag, "Error saving data: $it")
+                }
+
         }
+        Log.d(tag, "saveUserToDB: Check db for changes")
     }
 
     private fun registerUser(username: String, email: String, pass: String) {

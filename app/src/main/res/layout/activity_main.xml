@@ -1,25 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+<androidx.drawerlayout.widget.DrawerLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:paddingLeft="16dp"
-    android:paddingRight="16dp"
-    android:orientation="vertical"
-    android:background="@drawable/background"
-    android:gravity="center"
+    android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    android:fitsSystemWindows="true"
+    android:background="@drawable/background"
+    tools:context=".MainActivity2">
 
-    <Button style="@style/LevelBtnStyle"
-        android:id="@+id/easyButton"
-        android:text="@string/Easy" />
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-    <Button style="@style/LevelBtnStyle"
-        android:id="@+id/mediumButton"
-        android:text="@string/Medium" />
+        <androidx.appcompat.widget.Toolbar
+            android:id="@+id/topToolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/white"
+            android:theme="@style/ThemeOverlay.AppCompat.ActionBar"
+            app:layout_constraintTop_toTopOf="parent"
+            app:navigationIcon="@drawable/baseline_menu_24"
+            app:popupTheme="@style/Theme.Design.Light"
+            app:title="@string/app_name_fun"
+            tools:layout_editor_absoluteX="57dp" />
 
-    <Button style="@style/LevelBtnStyle"
-        android:id="@+id/hardButton"
-        android:text="@string/Hard" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/topToolbar">
 
-</LinearLayout>
+            <Button
+                android:id="@+id/easyButton"
+                style="@style/LevelBtnStyle"
+                android:text="@string/Easy" />
+
+            <Button
+                android:id="@+id/mediumButton"
+                style="@style/LevelBtnStyle"
+                android:text="@string/Medium" />
+
+            <Button
+                android:id="@+id/hardButton"
+                style="@style/LevelBtnStyle"
+                android:text="@string/Hard" />
+        </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <com.google.android.material.navigation.NavigationView
+        android:id="@+id/drawer_view"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:fitsSystemWindows="true"
+        app:headerLayout="@layout/nav_header"
+        app:menu="@menu/user_menu" />
+</androidx.drawerlayout.widget.DrawerLayout>

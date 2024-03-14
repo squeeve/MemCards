@@ -48,7 +48,7 @@ class MainActivity : AppCompatActivity() {
                     startActivity(Intent(this@MainActivity, LoginRegister::class.java))
                     finish()
                 } else {
-                    if (user!!.isEmailVerified) {
+                    if (user.isEmailVerified) {
                         Log.d(tag, "User was email-verified.")
                         startActivity(Intent(this@MainActivity, MainActivity2::class.java))
                         finish()
