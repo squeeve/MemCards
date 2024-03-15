@@ -9,6 +9,15 @@
     android:padding="16dp"
     tools:context=".GameActivity">
 
+    <TextView
+        android:id="@+id/timerView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:textColor="@color/white"
+        android:textSize="17sp"
+        android:gravity="center"
+        app:layout_constraintBottom_toTopOf="@id/gameLayout"/>
 
     <GridLayout
         android:id="@+id/gameLayout"

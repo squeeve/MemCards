@@ -38,6 +38,7 @@ class MainActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSelect
 
     private fun logoutUser() {
         FirebaseAuth.getInstance().signOut()
+        Toast.makeText(this@MainActivity2, "Thank you, come again!", Toast.LENGTH_SHORT).show()
         startActivity(Intent(this@MainActivity2, LoginRegister::class.java))
         finish()
     }
@@ -71,7 +72,7 @@ class MainActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSelect
                 override fun onDataChange(dataSnap: DataSnapshot) {
                     if (dataSnap.exists()) {
                         val username = dataSnap.child("username").getValue(String::class.java)
-                        Log.d(tag, "Username for ${user.email}: ${username}")
+                        Log.d(tag, "Username acquired from current user: ${username}")
                         nameTextView.text = username
                     } else {
                         Log.e(tag, "User ID $userId doesn't match any db entries.")
