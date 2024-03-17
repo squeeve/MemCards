@@ -8,7 +8,7 @@ import android.util.Log
 import android.widget.Button
 import android.widget.GridLayout
 import android.widget.TextView
-
+import android.widget.Toast
 
 
 /* class EndScreen : AppCompatActivity() {
@@ -20,12 +20,12 @@ import android.widget.TextView
     }
 } */
 
-class GameActivity : AppCompatActivity() {
+class GameActivity : AppCompatActivity(), Game.OnGameEndListener {
     private val tag: String = "GameActivity"
     private lateinit var game: Game
-    private lateinit var countUpTimer: CountUpTimer
     private var elapsedSeconds: Long = 0
     private lateinit var gameTimerView: TextView
+    private lateinit var countUpTimer: CountUpTimer
 
      private fun showConfirmationDialog(quit: Boolean = true) {
         Log.d(tag, "Entered showConfirmationDialog")
@@ -64,9 +64,10 @@ class GameActivity : AppCompatActivity() {
         val gridSize: Int = intent.getIntExtra("level", 2)
         val gridLayout = findViewById<GridLayout>(R.id.gameLayout)
         game = Game(this, gridSize, gridLayout)
+        game.onGameEndListener = this
         game.initializeGame()
 
-        gameTimerView = findViewById<TextView>(R.id.timerView)
+        gameTimerView = findViewById(R.id.timerView)
         val backButton = findViewById<Button>(R.id.backBtn)
         backButton.setOnClickListener {
             showConfirmationDialog()
@@ -76,6 +77,7 @@ class GameActivity : AppCompatActivity() {
             showConfirmationDialog(quit=false)
         }
         startCountUpTimer()
+
     }
 
     private fun startCountUpTimer() {
@@ -90,12 +92,20 @@ class GameActivity : AppCompatActivity() {
     }
 
     private fun updateTimerUI(elapsedSeconds: Long) {
-        gameTimerView.text = getString(R.string.timer_text, "${elapsedSeconds} seconds")
+        gameTimerView.text = getString(R.string.timer_text, "$elapsedSeconds seconds")
     }
 
     override fun onDestroy() {
         super.onDestroy()
         countUpTimer.stopTimer()
+    }
+
+    override fun onGameEnd() {
+        Log.d(tag, "Made it into onGameEnd()")
+        countUpTimer.stopTimer()
+        Toast.makeText(this@GameActivity,
+                    "Game finished. Score: ${100/elapsedSeconds}",
+                    Toast.LENGTH_SHORT).show()
     }
 }
 

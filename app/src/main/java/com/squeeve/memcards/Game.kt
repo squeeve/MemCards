@@ -7,7 +7,6 @@ import android.view.ViewGroup
 import android.widget.GridLayout
 import android.widget.LinearLayout
 import android.widget.TextView
-import android.widget.Toast
 import androidx.core.content.res.ResourcesCompat
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
@@ -21,7 +20,6 @@ internal val LEVELS = mapOf("EASY" to EASY, "MED" to MED, "HARD" to HARD)
 
 class Game(private val context: Context, val gridSize: Int, val layout: GridLayout) {
     private val tag = "Game"
-    //lateinit var onGameEndListener: onGameEndListener
 
     internal var cardsArray = mutableListOf<Card>()
     internal var gridLayout = layout
@@ -31,11 +29,13 @@ class Game(private val context: Context, val gridSize: Int, val layout: GridLayo
     private var openedCardIndex: Int? = null
     private var handler = Handler()
     private var faces: Int = -1     // this should be overwritten in initialization
+    lateinit var onGameEndListener: OnGameEndListener
+
+    // Firebase
     private lateinit var db: DatabaseReference
     private lateinit var gameRef: DatabaseReference
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
 
-    //interface onGameEndListener { fun onGameEnd() }
     private fun setUpGameCards(gridSize: Int): MutableList<Card> {
         // 1. Pick out set of unique card faces, double them and shuffle them
         val allCardContents = context.resources.getStringArray(R.array.card_contents)
@@ -86,32 +86,28 @@ class Game(private val context: Context, val gridSize: Int, val layout: GridLayo
                     isClickable = false
                 }
                 if (--faces == 0) {     // All matches completed.. this needs to go into endGame()
-                    //onGameEndListener.onGameEnd()
                     // no need to saveGameStateToFirebase() here... just calculate score and save.
                     Log.d(tag, "onCardClick:: TODO: Send to leaderboard! (Tries: ${tries})")
-                    Toast.makeText(context,
-                        "All matched! Number of tries: ${tries}. Number of retries: ${retries}.",
-                        Toast.LENGTH_SHORT).show()
                     // val activity = Intent(...leaderboard stuff...)
                     // startActivity(activity)
                     // finish()
+                    onGameEndListener.onGameEnd()
                 }
             // MISS LOGIC
             } else {
                 Log.d(tag, "onCardClick:: didn't match!")
-                flipBackCards(textView)
+                flipBackCards(textView, openedCardIndex!!)
+                openedCardIndex = null
             }
         }
         saveGameStateToFirebase()
         Log.d(tag, "onCardClick:: finished")
     }
 
-    private fun flipBackCards(secondCardView: TextView) {
+    private fun flipBackCards(secondCardView: TextView, otherCard: Int) {
         handler.postDelayed({
             secondCardView.text = context.resources.getString(R.string.card_back)
-            val firstCardView = gridLayout.findViewById<TextView>(openedCardIndex!!)
-            firstCardView.setText(R.string.card_back)
-            openedCardIndex = null
+            gridLayout.findViewById<TextView>(otherCard).setText(R.string.card_back)
         }, 1000)
     }
 
@@ -188,6 +184,10 @@ class Game(private val context: Context, val gridSize: Int, val layout: GridLayo
         retries++
         drawGame()
         Log.d(tag, "resetGame: Faces left: $faces. Tries: $tries. Retries: $retries")
+    }
+
+    interface OnGameEndListener {
+        fun onGameEnd()
     }
 
 }
