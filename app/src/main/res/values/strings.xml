@@ -7,7 +7,7 @@
     <string name="password">PASSWORD</string>
     <string name="username">USERNAME</string>
     <string name="login">LOGIN</string>
-    <string name="login_by_email">EMAIL MY LOGIN</string>
+    <string name="resend_email">RESEND VERIFICATION</string>
     <string name="register">CREATE ACCOUNT</string>
 
     <!-- GAME STRINGS -->

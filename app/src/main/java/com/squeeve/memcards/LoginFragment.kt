@@ -30,9 +30,8 @@ class LoginFragment : Fragment() {
         val emailEditText = view.findViewById<EditText>(R.id.emailText)
         val passEditText = view.findViewById<EditText>(R.id.passwordText)
         val loginBtn = view.findViewById<Button>(R.id.btnLogin)
-        val emailLoginBtn = view.findViewById<Button>(R.id.btnEmailLogin)
-        //val forgotPassBtn = view.findViewById<Button>(R.id.btnForgotPass)
-        //val forgotEmailBtn = view.findViewById<Button>(R.id.btnForgotEmail)
+        val emailLoginBtn = view.findViewById<Button>(R.id.btnResendEmail)
+        val forgotPassBtn = view.findViewById<Button>(R.id.btnForgotPass)
 
         auth = FirebaseAuth.getInstance()
 
@@ -44,18 +43,30 @@ class LoginFragment : Fragment() {
             )
         }
         emailLoginBtn.setOnClickListener {
-            Log.d(tag, "Logging in via email.")
-            loginUser(
-                emailEditText.text.toString(),
-                passEditText.text.toString(),
-                byEmail=true
-            )
+            Log.d(tag, "Resending verification email.")
+            Toast.makeText(requireContext(),
+                "Resending verification email. Please check your email again soon.",
+                Toast.LENGTH_SHORT).show()
+            auth.currentUser?.sendEmailVerification()
         }
+        forgotPassBtn.setOnClickListener {
+            auth.sendPasswordResetEmail(emailEditText.text.toString()).addOnCompleteListener {
+                if (it.isSuccessful) {
+                    Log.d(tag, "Sent password reset.")
+                    Toast.makeText(requireContext(),
+                        "Password reset email sent. Please check your email.",
+                        Toast.LENGTH_SHORT).show()
+                } else {
+                    Log.e(tag, "Unknown error occurred when sending password reset.")
+                }
+            }
+        }
+
         return view
     }
 
     private fun loginUser(email: String, pass: String="", byEmail: Boolean=false) {
-        if (email == "") {
+        if (email == "" || pass == "") {
             Log.d(tag, "registerUser: User did not fill out email field")
             Toast.makeText(
                 requireContext(),
