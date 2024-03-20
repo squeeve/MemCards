@@ -9,6 +9,10 @@ import android.widget.Button
 import android.widget.GridLayout
 import android.widget.TextView
 import android.widget.Toast
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ServerValue
 
 
 /* class EndScreen : AppCompatActivity() {
@@ -22,10 +26,13 @@ import android.widget.Toast
 
 class GameActivity : AppCompatActivity(), Game.OnGameEndListener {
     private val tag: String = "GameActivity"
+    private var level: Int = 0
     private lateinit var game: Game
     private var elapsedSeconds: Long = 0
     private lateinit var gameTimerView: TextView
     private lateinit var countUpTimer: CountUpTimer
+    private lateinit var db: DatabaseReference
+    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
 
      private fun showConfirmationDialog(quit: Boolean = true) {
         Log.d(tag, "Entered showConfirmationDialog")
@@ -46,6 +53,8 @@ class GameActivity : AppCompatActivity(), Game.OnGameEndListener {
             builder.setTitle("Are you sure?")
             builder.setMessage("Do you want to start this round over?")
             builder.setPositiveButton("Yes") { _,_ ->
+                elapsedSeconds = 0
+                startCountUpTimer()
                 game.resetGame()
             }
             builder.setNegativeButton("No") { dialog, _ ->
@@ -61,11 +70,21 @@ class GameActivity : AppCompatActivity(), Game.OnGameEndListener {
         setContentView(R.layout.activity_game)
 
         val intent = this.intent
-        val gridSize: Int = intent.getIntExtra("level", 2)
+        level = intent.getIntExtra("level", 2)
         val gridLayout = findViewById<GridLayout>(R.id.gameLayout)
-        game = Game(this, gridSize, gridLayout)
+
+        game = Game(this, level, gridLayout)
         game.onGameEndListener = this
-        game.initializeGame()
+        db = FirebaseDatabase.getInstance().reference
+
+        if (savedInstanceState != null) {
+            elapsedSeconds = savedInstanceState.getLong("elapsedSeconds")
+            startCountUpTimer()
+            game.resetGame(reoriented=true)
+        } else {
+            game.initializeGame()
+            startCountUpTimer()
+        }
 
         gameTimerView = findViewById(R.id.timerView)
         val backButton = findViewById<Button>(R.id.backBtn)
@@ -76,8 +95,12 @@ class GameActivity : AppCompatActivity(), Game.OnGameEndListener {
         resetButton.setOnClickListener {
             showConfirmationDialog(quit=false)
         }
-        startCountUpTimer()
 
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putLong("elapsedSeconds", elapsedSeconds)
     }
 
     private fun startCountUpTimer() {
@@ -85,7 +108,6 @@ class GameActivity : AppCompatActivity(), Game.OnGameEndListener {
             override fun onTick(elapsedSeconds: Long) {
                 this@GameActivity.elapsedSeconds = elapsedSeconds
                 updateTimerUI(elapsedSeconds)
-                //game.updateTimer(elapsedSeconds)
             }
         }
         countUpTimer.start()
@@ -95,17 +117,49 @@ class GameActivity : AppCompatActivity(), Game.OnGameEndListener {
         gameTimerView.text = getString(R.string.timer_text, "$elapsedSeconds seconds")
     }
 
+    private fun saveUserStatsToFirebase(score: Long): String {
+        val userScoresRef = db.child("Users").child(auth.currentUser!!.uid)
+                                                .child("Scores")
+                                                .child(LEVELSTOSTRING.getValue(level))
+        val newScoreRef = userScoresRef.push()
+        val reverseScore = score*-1
+        val scoreData = mapOf(
+            "score" to reverseScore,
+            "timestamp" to ServerValue.TIMESTAMP  // returns epoch-time
+        )
+        newScoreRef.setValue(scoreData)
+        return newScoreRef.key!!
+    }
+
+    private fun removeGameState() {
+        val userRef = db.child("Users").child(auth.currentUser!!.uid)
+        userRef.child("gameState").removeValue { e, _ ->
+            if (e != null) {
+                Log.e(tag, "Failed to remove gameState from user ${auth.currentUser}: $e")
+            } else {
+                Log.d(tag, "Removed gameState from user ${auth.currentUser}")
+            }
+        }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         countUpTimer.stopTimer()
     }
 
     override fun onGameEnd() {
-        Log.d(tag, "Made it into onGameEnd()")
         countUpTimer.stopTimer()
-        Toast.makeText(this@GameActivity,
-                    "Game finished. Score: ${100/elapsedSeconds}",
-                    Toast.LENGTH_SHORT).show()
+        val score = if (1000/elapsedSeconds <= game.tries) 0 else 1000/elapsedSeconds-game.tries
+        val key = saveUserStatsToFirebase(score)
+        removeGameState()
+
+        Log.d(tag, "Sending to leaderboard... score: ${score}. level: ${level}")
+        val leaderboardActivity = Intent(this, LeaderboardActivity::class.java)
+        leaderboardActivity.putExtra("thisScore", score)
+        leaderboardActivity.putExtra("thisLevel", level)
+        leaderboardActivity.putExtra("scoreId", key)
+        startActivity(leaderboardActivity)
+        finish()
     }
 }
 

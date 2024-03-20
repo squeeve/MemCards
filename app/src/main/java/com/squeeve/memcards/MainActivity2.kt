@@ -30,7 +30,7 @@ class MainActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSelect
     private lateinit var auth: FirebaseAuth
     private lateinit var dbReference: DatabaseReference
 
-    private fun gotoGame(level: Int) {
+    internal fun gotoGame(level: Int) {
         val startGame = Intent(this, GameActivity::class.java)
         startGame.putExtra("level", level)
         startActivity(startGame)
@@ -111,10 +111,10 @@ class MainActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSelect
                     Toast.LENGTH_SHORT).show()
                 gotoGame(level.value)
             }
-            R.id.menu_leaderboard -> Toast.makeText(
-                            this@MainActivity2,
-                            "Go to leaderboard",
-                            Toast.LENGTH_SHORT).show()
+            R.id.menu_leaderboard -> {
+                val leaderboard = Intent(this, LeaderboardActivity::class.java)
+                startActivity(leaderboard)
+            }
             R.id.menu_profile -> Toast.makeText(
                             this@MainActivity2,
                             "Go to profile",

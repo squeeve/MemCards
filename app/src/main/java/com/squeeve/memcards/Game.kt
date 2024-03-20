@@ -17,6 +17,7 @@ internal const val EASY = 2
 internal const val MED = 4
 internal const val HARD = 6
 internal val LEVELS = mapOf("EASY" to EASY, "MED" to MED, "HARD" to HARD)
+internal val LEVELSTOSTRING = mapOf(EASY to "EASY", MED to "MEDIUM", HARD to "HARD")
 
 class Game(private val context: Context, val gridSize: Int, val layout: GridLayout) {
     private val tag = "Game"
@@ -24,7 +25,6 @@ class Game(private val context: Context, val gridSize: Int, val layout: GridLayo
     internal var cardsArray = mutableListOf<Card>()
     internal var gridLayout = layout
     internal var tries: Int = 0      // number of attempted matches in this round
-    internal var retries: Int = 0    // number of rounds
     private var openedCard: Boolean = false
     private var openedCardIndex: Int? = null
     private var handler = Handler()
@@ -85,12 +85,7 @@ class Game(private val context: Context, val gridSize: Int, val layout: GridLayo
                     alpha = 0F
                     isClickable = false
                 }
-                if (--faces == 0) {     // All matches completed.. this needs to go into endGame()
-                    // no need to saveGameStateToFirebase() here... just calculate score and save.
-                    Log.d(tag, "onCardClick:: TODO: Send to leaderboard! (Tries: ${tries})")
-                    // val activity = Intent(...leaderboard stuff...)
-                    // startActivity(activity)
-                    // finish()
+                if (--faces == 0) {
                     onGameEndListener.onGameEnd()
                 }
             // MISS LOGIC
@@ -153,11 +148,10 @@ class Game(private val context: Context, val gridSize: Int, val layout: GridLayo
             )
         }
 
-        Log.d(tag, "saveGameStateToFirebase: tries: $tries ; retries: $retries")
+        Log.d(tag, "saveGameStateToFirebase: tries: $tries")
         val gameStateMap = mapOf<String, Any>(
             "cardsArray" to cardsArrayMap,
             "tries" to tries,
-            "retries" to retries
         )
         gameRef.updateChildren(gameStateMap)
     }
@@ -175,15 +169,20 @@ class Game(private val context: Context, val gridSize: Int, val layout: GridLayo
         drawGame()
     }
 
-    internal fun resetGame() {
-        cardsArray.forEachIndexed { _, card ->
-            card.matched = false
+    internal fun resetGame(reoriented: Boolean=false) {
+        if (!reoriented) {  // reset happened because of Button click.
+            cardsArray.forEachIndexed { _, card ->
+                card.matched = false
+            }
+            faces = cardsArray.size / 2
+            tries = 0
+            gridLayout.removeAllViews()
+        } else {        // reset happened because device was reoriented
+            initializeFirebase()
+            // TODO: put the cardsArray back the way it was, and replace faces and tries variables.
         }
-        faces = cardsArray.size / 2
-        tries = 0
-        retries++
         drawGame()
-        Log.d(tag, "resetGame: Faces left: $faces. Tries: $tries. Retries: $retries")
+        Log.d(tag, "resetGame: Faces left: $faces. Tries: $tries.")
     }
 
     interface OnGameEndListener {
