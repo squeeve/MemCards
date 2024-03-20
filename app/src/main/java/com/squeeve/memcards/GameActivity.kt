@@ -8,21 +8,11 @@ import android.util.Log
 import android.widget.Button
 import android.widget.GridLayout
 import android.widget.TextView
-import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ServerValue
 
-
-/* class EndScreen : AppCompatActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_endscreen)
-
-        // We're changing EndScreen to be a leaderboard page w/ a possible fragment.
-    }
-} */
 
 class GameActivity : AppCompatActivity(), Game.OnGameEndListener {
     private val tag: String = "GameActivity"
