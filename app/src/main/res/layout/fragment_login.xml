@@ -52,7 +52,7 @@
                 android:id="@+id/btnResendEmail"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="5dp"
+                android:layout_marginStart="5dp"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintLeft_toRightOf="@id/btnLogin"
                 android:text="@string/resend_email"/>
