@@ -27,14 +27,12 @@ class LeaderboardManager(private val context: Context, private val level: Int) {
     private lateinit var levelRef: DatabaseReference
 
     fun getLeaderboardEntries(callback: (List<LeaderboardEntry>) -> Unit) {
-        if (level > -1) {
-            levelString = LEVELSTOSTRING.getValue(level)
-        } else {
-            levelString = "EASY"
+        levelString = if (level > -1) {
+            LEVELSTOSTRING.getValue(level)
+        } else { // TODO: Show everything.
+            "EASY"
         }
-
         levelRef = leaderRef.child(levelString)
-
         levelRef.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.exists() && snapshot.childrenCount > 0) {
