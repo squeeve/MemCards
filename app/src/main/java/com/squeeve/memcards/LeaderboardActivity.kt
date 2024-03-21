@@ -77,10 +77,10 @@ class LeaderboardActivity : AppCompatActivity(), NavigationView.OnNavigationItem
         val userScore = intent.getLongExtra("thisScore", -1)
         val userLevel = intent.getIntExtra("thisLevel", -1)
         val scoreId = intent.getStringExtra("scoreId")
-        if (userLevel > -1) {
-            levelStr = LEVELSTOSTRING.getValue(userLevel)
+        levelStr = if (userLevel > -1) {
+            LEVELSTOSTRING.getValue(userLevel)
         } else { // TODO: Figure out a way to print out everything.
-            levelStr = "EASY"
+            "EASY"
         }
         leaderboardManager = LeaderboardManager(this, userLevel)
 
