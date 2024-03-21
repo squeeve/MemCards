@@ -16,10 +16,8 @@ import com.google.firebase.auth.actionCodeSettings
 
 
 class LoginFragment : Fragment() {
-
     private var tag: String = "LoginFragment"
     private lateinit var auth: FirebaseAuth
-    private lateinit var currentUser: FirebaseUser
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -34,6 +32,7 @@ class LoginFragment : Fragment() {
         val forgotPassBtn = view.findViewById<Button>(R.id.btnForgotPass)
 
         auth = FirebaseAuth.getInstance()
+        val currentUser = auth.currentUser
 
         loginBtn.setOnClickListener {
             Log.d(tag, "Logging in with password.")
@@ -47,7 +46,7 @@ class LoginFragment : Fragment() {
             Toast.makeText(requireContext(),
                 "Resending verification email. Please check your email again soon.",
                 Toast.LENGTH_SHORT).show()
-            auth.currentUser?.sendEmailVerification()
+            currentUser!!.sendEmailVerification()
         }
         forgotPassBtn.setOnClickListener {
             auth.sendPasswordResetEmail(emailEditText.text.toString()).addOnCompleteListener {
@@ -81,9 +80,8 @@ class LoginFragment : Fragment() {
                     if (it.isSuccessful) {
                         // Sign in success, update UI with the signed-in user's information
                         Log.d(tag, "logInWithPassword:success")
-                        currentUser = auth.currentUser!!
-                        if (currentUser.isEmailVerified) {
-                            updateUI(currentUser)
+                        if (auth.currentUser!!.isEmailVerified) {
+                            updateUI(auth.currentUser)
                         } else {
                             Toast.makeText(
                                 requireContext(),

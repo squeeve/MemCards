@@ -1,6 +1,5 @@
 package com.squeeve.memcards
 
-import android.graphics.Picture
 
 data class User(
     var username: String = "",

@@ -24,8 +24,7 @@
             app:layout_constraintTop_toTopOf="parent"
             app:navigationIcon="@drawable/baseline_menu_24"
             app:popupTheme="@style/Theme.Design.Light"
-            app:title="@string/app_name_fun"
-            tools:layout_editor_absoluteX="57dp" />
+            app:title="@string/app_name_fun" />
 
         <LinearLayout
             android:id="@+id/userStats"
@@ -50,6 +49,17 @@
                 android:text="@string/userstats"
                 android:contentDescription="@string/user_stats"/>
         </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:padding="5dp"
+            android:scrollbars="vertical"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            app:layout_constraintTop_toBottomOf="@id/userStats" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <com.google.android.material.navigation.NavigationView

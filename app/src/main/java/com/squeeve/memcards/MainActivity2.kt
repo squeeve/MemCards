@@ -66,7 +66,7 @@ class MainActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSelect
         val headerView = navigationView.getHeaderView(0)
         val nameTextView = headerView.findViewById<TextView>(R.id.profile_name)
         currentUser.let { user ->
-            val userId = currentUser.uid
+            val userId = user.uid
             val userRef = dbReference.child("Users").child(userId)
             userRef.addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(dataSnap: DataSnapshot) {

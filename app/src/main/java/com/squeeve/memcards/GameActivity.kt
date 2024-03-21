@@ -108,28 +108,29 @@ class GameActivity : AppCompatActivity(), Game.OnGameEndListener {
     }
 
     private fun saveUserStatsToFirebase(score: Long): String {
+        // Adds user's score to their account, and updates the leaderboard if applicable.
+        // Returns the key of the user's score.
         val userScoresRef = db.child("Users").child(auth.currentUser!!.uid)
                                                 .child("Scores")
                                                 .child(LEVELSTOSTRING.getValue(level))
         val newScoreRef = userScoresRef.push()
-        val reverseScore = score*-1
         val scoreData = mapOf(
-            "score" to reverseScore,
+            "score" to score,
             "timestamp" to ServerValue.TIMESTAMP  // returns epoch-time
         )
         newScoreRef.setValue(scoreData)
+
         return newScoreRef.key!!
     }
 
     private fun removeGameState() {
         val userRef = db.child("Users").child(auth.currentUser!!.uid)
-        userRef.child("gameState").removeValue { e, _ ->
-            if (e != null) {
-                Log.e(tag, "Failed to remove gameState from user ${auth.currentUser}: $e")
-            } else {
-                Log.d(tag, "Removed gameState from user ${auth.currentUser}")
+        userRef.child("gameState").removeValue()
+            .addOnCompleteListener {
+                if (!it.isSuccessful) {
+                    Log.d(tag, "Error removing gameState: ${it.exception}")
+                }
             }
-        }
     }
 
     override fun onDestroy() {
@@ -143,7 +144,7 @@ class GameActivity : AppCompatActivity(), Game.OnGameEndListener {
         val key = saveUserStatsToFirebase(score)
         removeGameState()
 
-        Log.d(tag, "Sending to leaderboard... score: ${score}. level: ${level}")
+        Log.d(tag, "Sending to leaderboard... score: $score. level: $level")
         val leaderboardActivity = Intent(this, LeaderboardActivity::class.java)
         leaderboardActivity.putExtra("thisScore", score)
         leaderboardActivity.putExtra("thisLevel", level)
