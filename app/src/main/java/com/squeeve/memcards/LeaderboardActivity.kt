@@ -90,6 +90,9 @@ class LeaderboardActivity : AppCompatActivity(), NavigationView.OnNavigationItem
             val scoreRef = userRef.child("Scores")
                 .child(levelStr)
                 .child(scoreId!!)
+            /*
+            // TODO: I just want to change this so that it gets the leaderboard. No data mods.
+
             scoreRef.addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     Log.d(tag, "Made it into scoreRef's onDataChange")
@@ -126,7 +129,7 @@ class LeaderboardActivity : AppCompatActivity(), NavigationView.OnNavigationItem
                         "Error getting scoreId $scoreId for ${auth.currentUser}: ${error.message}"
                     )
                 }
-            })
+            }) */
         } else { // if started by user nav, hide score view.
             val userStatsView = findViewById<TextView>(R.id.userStatsText)
             userStatsView.visibility = TextView.GONE

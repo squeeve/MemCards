@@ -27,20 +27,14 @@ import kotlin.random.Random
 class MainActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
     private val tag: String = "MainActivity2"
+    private lateinit var authMan: AuthManager
     private lateinit var auth: FirebaseAuth
     private lateinit var dbReference: DatabaseReference
 
-    internal fun gotoGame(level: Int) {
+    private fun gotoGame(level: Int) {
         val startGame = Intent(this, GameActivity::class.java)
         startGame.putExtra("level", level)
         startActivity(startGame)
-    }
-
-    private fun logoutUser() {
-        FirebaseAuth.getInstance().signOut()
-        Toast.makeText(this@MainActivity2, "Thank you, come again!", Toast.LENGTH_SHORT).show()
-        startActivity(Intent(this@MainActivity2, LoginRegister::class.java))
-        finish()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,7 +43,12 @@ class MainActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSelect
 
         auth = FirebaseAuth.getInstance()
         dbReference = FirebaseDatabase.getInstance().reference
-        val currentUser = auth.currentUser!!
+        authMan = AuthManager(this)
+        val currentUser = auth.currentUser
+        if (currentUser == null) {
+            authMan.startLoginActivity()
+            finish()
+        }
 
         val drawerLayout = findViewById<DrawerLayout>(R.id.drawer_layout)
         val navigationView = findViewById<NavigationView>(R.id.drawer_view)
@@ -65,26 +64,25 @@ class MainActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSelect
         Log.d(tag, "NavigationView's header count: ${navigationView.headerCount}")
         val headerView = navigationView.getHeaderView(0)
         val nameTextView = headerView.findViewById<TextView>(R.id.profile_name)
-        currentUser.let { user ->
+        currentUser!!.let { user ->
             val userId = user.uid
             val userRef = dbReference.child("Users").child(userId)
             userRef.addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(dataSnap: DataSnapshot) {
                     if (dataSnap.exists()) {
                         val username = dataSnap.child("username").getValue(String::class.java)
-                        Log.d(tag, "Username acquired from current user: ${username}")
+                        val email = dataSnap.child("email").getValue(String::class.java)
+                        Log.d(tag, "Username acquired from current user: $username")
                         nameTextView.text = username
+                        prefFileCheck(user.uid, username!!, email!!)
                     } else {
                         Log.e(tag, "User ID $userId doesn't match any db entries.")
-                        Toast.makeText(
-                            this@MainActivity2,
-                            "Please register to play!",
-                            Toast.LENGTH_SHORT).show()
-                        logoutUser()
+                        authMan.startLoginActivity()
+                        finish()
                     }
                 }
                 override fun onCancelled(dbError: DatabaseError) {
-                    Log.e(tag, "userRef:: Database error: ${dbError}")
+                    Log.e(tag, "userRef:: Database error: $dbError")
                     Toast.makeText(this@MainActivity2,
                         "Couldn't access your profile. Please register.",
                         Toast.LENGTH_SHORT).show()
@@ -99,6 +97,17 @@ class MainActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSelect
         easyButton.setOnClickListener { gotoGame(EASY) }
         medButton.setOnClickListener { gotoGame(MED) }
         hardButton.setOnClickListener { gotoGame(HARD) }
+    }
+
+    private fun prefFileCheck(uid: String, username: String, email: String) {
+        // Create the app internal file if it doesn't exist.
+        val userJson = mapOf(
+            "username" to username,
+            "email" to email
+        )
+        Log.d("PrefFile", "Creating app's user pref file. Check ${this.filesDir}")
+        val fh = FileHelper(this@MainActivity2)
+        fh.saveToFile(userJson, getString(R.string.app_domain)+".$uid")
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
@@ -120,7 +129,8 @@ class MainActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSelect
                             "Go to profile",
                             Toast.LENGTH_SHORT).show()
             R.id.menu_signout -> {
-                logoutUser()
+                authMan.logout()
+                finish()
             }
         }
         return super.onOptionsItemSelected(item)

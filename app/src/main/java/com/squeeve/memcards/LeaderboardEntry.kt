@@ -11,7 +11,7 @@ import com.google.firebase.database.ValueEventListener
 import java.util.Date
 
 data class LeaderboardEntry (
-    var level: Int = 0,
+    var level: String = "",
     var score: Long =  0,
     var timeStamp: Date? = null,
     var username: String = "",
@@ -32,6 +32,7 @@ class LeaderboardManager(private val context: Context, private val level: Int) {
         } else { // TODO: Show everything.
             "EASY"
         }
+        Log.d("getLboardEntries", "Getting leaderboard, using level $levelString")
         levelRef = leaderRef.child(levelString)
         levelRef.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -39,17 +40,18 @@ class LeaderboardManager(private val context: Context, private val level: Int) {
                     val entries = mutableListOf<LeaderboardEntry>()
                     for (entrySnapshot in snapshot.children) {
                         val entry = entrySnapshot.getValue(LeaderboardEntry::class.java)
+                        val e = if (entry != null) {
+                            "level: ${entry.level}. score: ${entry.score}. time: ${entry.timeStamp}. user: ${entry.username}. uid: ${entry.userUid}. sid: ${entry.scoreId}"
+                        } else { "(null)" }
+                        Log.d(tag, "Adding entry: $e")
                         entry?.let { entries.add(it) }
                     }
-                    val e = entries.last()
-                    Log.d(tag, "Example last entry: SCORE: ${e.score}. LEVEL: ${e.level}")
                     callback(entries)
                 } else {
                     levelRef.setValue(emptyList<LeaderboardEntry>())
                     callback(emptyList())
                 }
             }
-
             override fun onCancelled(error: DatabaseError) {
                 if (error.code == DatabaseError.DATA_STALE) { // apparently node doesn't exist
                     Log.d(tag, "Instantiating the level $levelString in leaderboardRef.")

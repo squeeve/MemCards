@@ -19,11 +19,12 @@ internal const val HARD = 6
 internal val LEVELS = mapOf("EASY" to EASY, "MED" to MED, "HARD" to HARD)
 internal val LEVELSTOSTRING = mapOf(EASY to "EASY", MED to "MEDIUM", HARD to "HARD")
 
-class Game(private val context: Context, val gridSize: Int, val layout: GridLayout) {
+class Game(private val context: Context, private val gridSize: Int, val layout: GridLayout) {
     private val tag = "Game"
+    private val fh = FileHelper(context)
 
-    internal var cardsArray = mutableListOf<Card>()
-    internal var gridLayout = layout
+    private var cardsArray = mutableListOf<Card>()
+    private var gridLayout = layout
     internal var tries: Int = 0      // number of attempted matches in this round
     private var openedCard: Boolean = false
     private var openedCardIndex: Int? = null
@@ -35,6 +36,7 @@ class Game(private val context: Context, val gridSize: Int, val layout: GridLayo
     private lateinit var db: DatabaseReference
     private lateinit var gameRef: DatabaseReference
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+    private var gameStateFile = auth.currentUser!!.uid + "-gameState.json"
 
     private fun setUpGameCards(gridSize: Int): MutableList<Card> {
         // 1. Pick out set of unique card faces, double them and shuffle them
@@ -51,13 +53,13 @@ class Game(private val context: Context, val gridSize: Int, val layout: GridLayo
             lastIndex.also { cardsArray[firstIndex].match = it }
             firstIndex.also { cardsArray[lastIndex].match = it }
         }
-        // by now, the cardsArray order is set for this round.
-        // To reset the game, just reset the game parameters, and rebuild from this list.
+        // By now, the cardsArray order is set for this round.
+        // To reset the game, just reset the game parameters. No need to call this function again.
         return cardsArray
     }
 
     private fun onCardClick(textView: TextView, card: Card) {
-        Log.d(tag, "onCardClick: Started. Tries: ${tries}. Card: ${card.value}. Opened: ${openedCard}")
+        Log.d(tag, "onCardClick: Started. Tries: ${tries}. Card: ${card.value}. Opened: $openedCard")
         if (textView.text == card.value) { // clicked on something already open; don't count it.
             Log.d(tag, "onCardClick: clicked on open card; ignoring.")
             return
@@ -70,7 +72,7 @@ class Game(private val context: Context, val gridSize: Int, val layout: GridLayo
         } else {
             tries++
             openedCard = false
-            Log.d(tag, "onCardClick:: tries now ${tries}")
+            Log.d(tag, "onCardClick:: tries now $tries")
             // MATCH LOGIC
             if (card.match == cardsArray[openedCardIndex!!].index) {
                 Log.d(tag, "onCardClick:: matched!")
@@ -95,7 +97,7 @@ class Game(private val context: Context, val gridSize: Int, val layout: GridLayo
                 openedCardIndex = null
             }
         }
-        saveGameStateToFirebase()
+        saveGameState()
         Log.d(tag, "onCardClick:: finished")
     }
 
@@ -106,7 +108,12 @@ class Game(private val context: Context, val gridSize: Int, val layout: GridLayo
         }, 1000)
     }
 
-    internal fun drawGame(): GridLayout {
+    private fun drawGame(): GridLayout {
+        // I should note that this is only for initial rendering when Activity is created/recreated.
+        // After that, onCardClick takes over the rest of the rendering. Hence, cardsArray needs to be
+        // properly set to previous state.
+
+        gridLayout.removeAllViews()
         gridLayout.columnCount = gridSize
         gridLayout.rowCount = gridSize
         if (gridSize > 4) {
@@ -123,22 +130,32 @@ class Game(private val context: Context, val gridSize: Int, val layout: GridLayo
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 4.0f
             )
-            textView.apply {
-                layoutParams = param
-                id = idx
-                background = ResourcesCompat.getDrawable(context.resources, R.drawable.border, null)
-                setText(context.resources.getString(R.string.card_back))
-            }
-            textView.setOnClickListener {
-                onCardClick(textView, card)
+            if (card.matched) {
+                textView.apply {
+                    layoutParams = param
+                    id = idx
+                    alpha = 0F
+                    isClickable = false
+                }
+            } else {
+                textView.apply {
+                    layoutParams = param
+                    id = idx
+                    background =
+                        ResourcesCompat.getDrawable(context.resources, R.drawable.border, null)
+                    text = if (idx != openedCardIndex) { context.resources.getString(R.string.card_back) } else { card.value }
+                }
+                textView.setOnClickListener {
+                    onCardClick(textView, card)
+                }
             }
             gridLayout.addView(textView)
         }
-        saveGameStateToFirebase()
+        saveGameState()
         return gridLayout
     }
 
-    private fun saveGameStateToFirebase() {
+    private fun saveGameState() {
         val cardsArrayMap = cardsArray.map { card ->
             mapOf(
                 "value" to card.value,
@@ -148,12 +165,16 @@ class Game(private val context: Context, val gridSize: Int, val layout: GridLayo
             )
         }
 
-        Log.d(tag, "saveGameStateToFirebase: tries: $tries")
-        val gameStateMap = mapOf<String, Any>(
-            "cardsArray" to cardsArrayMap,
+        Log.d(tag, "saveGameStateToFirebase: tries: $tries. faces: $faces")
+        val gameStateMap = mapOf(
             "tries" to tries,
+            "faces" to faces,
+            "openedCard" to openedCard,
+            "openedCardIndex" to openedCardIndex,
+            "cardsArray" to cardsArrayMap
         )
-        gameRef.updateChildren(gameStateMap)
+        fh.saveToFile(gameStateMap, gameStateFile)
+
     }
 
     private fun initializeFirebase() {
@@ -162,27 +183,58 @@ class Game(private val context: Context, val gridSize: Int, val layout: GridLayo
         gameRef = db.child("Users").child(currentUser.uid).child("gameState")
     }
 
-    internal fun initializeGame() {
+    internal fun initializeGame(shuffle: Boolean = false) {
         initializeFirebase()
-        setUpGameCards(gridSize)
-        faces = cardsArray.size / 2
-        drawGame()
-    }
-
-    internal fun resetGame(reoriented: Boolean=false) {
-        if (!reoriented) {  // reset happened because of Button click.
+        Log.d(tag, "Reinitializing game, with shuffle = $shuffle")
+        if (shuffle) {
+            setUpGameCards(gridSize)
+        } else {
             cardsArray.forEachIndexed { _, card ->
                 card.matched = false
             }
-            faces = cardsArray.size / 2
-            tries = 0
-            gridLayout.removeAllViews()
+        }
+        openedCard = false
+        openedCardIndex = null
+        faces = cardsArray.size / 2
+        tries = 0
+        drawGame()
+    }
+
+    internal fun resetGame(reoriented: Boolean) {
+        val tag = "gameState" // makes debugging easier
+
+        if (!reoriented) {  // reset happened because of Button click.
+            initializeGame()
         } else {        // reset happened because device was reoriented
             initializeFirebase()
-            // TODO: put the cardsArray back the way it was, and replace faces and tries variables.
+            val currState: Map<String,Any>? = fh.readFromFile(gameStateFile)
+            if (currState != null) {
+                Log.d(tag, "Attempting to redraw after orientation. Did it work? (${currState.keys})")
+                for ((key, value) in currState) {
+                    when (key) {
+                        "tries" -> tries = (value as Number).toInt()
+                        "faces" -> faces = (value as Number).toInt()
+                        "openedCardIndex" -> openedCardIndex = (value as Number).toInt()
+                        "openedCard" -> openedCard = value as Boolean
+                        "cardsArray" -> {
+                            val arrayCardList = value as? ArrayList<Map<String, Any>>
+                            cardsArray = arrayCardList?.map { c ->
+                                val cvalue = c["value"] as String
+                                val index = (c["index"] as Double).toInt()
+                                val match = (c["match"] as Double).toInt()
+                                val matched = c["matched"] as Boolean
+                                Log.d(tag, "Building card...")
+                                Card(cvalue, index, match, matched)
+                            }?.toMutableList() ?: setUpGameCards(gridSize)
+                        }
+                    }
+                }
+                Log.d(tag, "resetGame: Faces left: $faces. Tries: $tries. openedCardIndex: $openedCardIndex. openedCard = $openedCard")
+            } else {
+                Log.e(tag, "Something is wrong with reading your gameState file; returned null!")
+            }
         }
         drawGame()
-        Log.d(tag, "resetGame: Faces left: $faces. Tries: $tries.")
     }
 
     interface OnGameEndListener {

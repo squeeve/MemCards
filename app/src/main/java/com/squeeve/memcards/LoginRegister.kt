@@ -20,7 +20,7 @@ class LoginRegister : AppCompatActivity() {
         val registerFragment = RegisterFragment()
 
         val currentUser = auth.currentUser
-        val initialFrag = if (currentUser == null) registerFragment else loginFragment
+        val initialFrag = if (currentUser == null) { registerFragment } else { loginFragment }
 
         // Display login fragment by default
         fragmentManager.beginTransaction().apply {

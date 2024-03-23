@@ -12,7 +12,6 @@ import android.widget.EditText
 import android.widget.Toast
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.auth.actionCodeSettings
 
 
 class LoginFragment : Fragment() {
@@ -64,7 +63,7 @@ class LoginFragment : Fragment() {
         return view
     }
 
-    private fun loginUser(email: String, pass: String="", byEmail: Boolean=false) {
+    private fun loginUser(email: String, pass: String="") {
         if (email == "" || pass == "") {
             Log.d(tag, "registerUser: User did not fill out email field")
             Toast.makeText(
@@ -74,50 +73,31 @@ class LoginFragment : Fragment() {
             ).show()
             return
         }
-        if (!byEmail) {
-            auth.signInWithEmailAndPassword(email, pass)
-                .addOnCompleteListener(requireActivity()) {
-                    if (it.isSuccessful) {
-                        // Sign in success, update UI with the signed-in user's information
-                        Log.d(tag, "logInWithPassword:success")
-                        if (auth.currentUser!!.isEmailVerified) {
-                            updateUI(auth.currentUser)
-                        } else {
+
+        auth.signInWithEmailAndPassword(email, pass)
+            .addOnCompleteListener(requireActivity()) {
+                if (it.isSuccessful) {
+                    // Sign in success, update UI with the signed-in user's information
+                    Log.d(tag, "logInWithPassword:success")
+                    if (auth.currentUser!!.isEmailVerified) {
+                        updateUI(auth.currentUser)
+                    } else {
                             Toast.makeText(
                                 requireContext(),
                                 "Please verify your email address before continuing.",
                                 Toast.LENGTH_LONG
                             ).show()
-                        }
-                    } else {
-                        // If sign in fails, display a message to the user.
-                        Log.w(tag, "logInWithPassword:failure", it.exception)
-                        Toast.makeText(
+                    }
+                } else {
+                    // If sign in fails, display a message to the user.
+                    Log.w(tag, "logInWithPassword:failure", it.exception)
+                    Toast.makeText(
                             requireContext(),
                             "Authentication failed.",
-                            Toast.LENGTH_SHORT,
-                        ).show()
-                        updateUI(null)
-                    }
+                            Toast.LENGTH_SHORT).show()
+                    updateUI(null)
                 }
-        } else {
-            val actionCodeSettings = actionCodeSettings {
-                url = "TODO"
-                handleCodeInApp = true
-
             }
-            auth.sendSignInLinkToEmail(email, actionCodeSettings)
-                .addOnCompleteListener(requireActivity()) {
-                    if (!it.isSuccessful) {
-                        Log.e(tag, "logInWithEmail:failure", it.exception)
-                        Toast.makeText(
-                            requireContext(),
-                            "Login failure. Check your email address and try again.",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }
-        }
     }
 
     private fun updateUI(user: FirebaseUser?) {

@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">MemCards</string>
     <string name="app_name_fun">🙈 MemCards 🙊</string>
+    <string name="app_domain">com.squeeve.memcards</string>
 
     <!-- LOGIN/REGISTER PAGE STRINGS -->
     <string name="email">EMAIL</string>

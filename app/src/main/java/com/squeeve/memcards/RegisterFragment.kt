@@ -16,12 +16,12 @@ import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 
 
-
 class RegisterFragment : Fragment() {
 
     private var tag: String = "RegisterFragment"
     private lateinit var auth: FirebaseAuth
     private lateinit var currentUser: FirebaseUser
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -59,8 +59,17 @@ class RegisterFragment : Fragment() {
                 .addOnFailureListener {
                     Log.e(tag, "Error saving data: $it")
                 }
-
         }
+
+        // Create the app internal file if it doesn't exist.
+        val userJson = mapOf(
+            "username" to username,
+            "email" to email
+        )
+        Log.d("PrefFile", "Creating app's user pref file. Check ${requireContext().filesDir}")
+        val fh = FileHelper(requireContext())
+        fh.saveToFile(userJson, getString(R.string.app_domain)+".${currentUser.uid}")
+
         Log.d(tag, "saveUserToDB: Check db for changes")
     }
 
