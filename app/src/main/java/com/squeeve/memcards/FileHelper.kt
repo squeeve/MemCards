@@ -2,8 +2,8 @@ package com.squeeve.memcards
 
 import android.content.Context
 import android.util.Log
-import com.google.common.reflect.TypeToken
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -13,11 +13,16 @@ import java.lang.Exception
 
 class FileHelper(private val context: Context) {
     internal val gson = Gson()
+    private val tag = "FileHelper"
 
-    internal fun <T> saveToFile(thing: T, filename: String) {
+    internal fun <T> saveToFile(thing: T, filename: String, overwrite: Boolean = true) {
         val serializedThing = gson.toJson(thing)
         val file = getInternalFile(filename)
 
+        if (file.exists() && !overwrite) {
+            Log.d(tag, "File exists, and overwrite was not desired; not saving.")
+            return
+        }
         try {
             FileOutputStream(file).use { outputStream ->
                 outputStream.write(serializedThing.toByteArray())
@@ -25,7 +30,7 @@ class FileHelper(private val context: Context) {
             }
 
         } catch (e: Exception) {
-            Log.e("PrefFile", "An error occurred: $e")
+            Log.e(tag, "An error occurred: $e")
         }
     }
 

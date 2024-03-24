@@ -74,7 +74,7 @@ class LeaderboardActivity : AppCompatActivity(), NavigationView.OnNavigationItem
         initializeFirebase()
 
         val intent = this.intent
-        val userScore = intent.getLongExtra("thisScore", -1)
+        val userScore = intent.getSerializableExtra("thisScore") as Score?
         val userLevel = intent.getIntExtra("thisLevel", -1)
         val scoreId = intent.getStringExtra("scoreId")
         levelStr = if (userLevel > -1) {
@@ -86,7 +86,7 @@ class LeaderboardActivity : AppCompatActivity(), NavigationView.OnNavigationItem
 
         Log.d(tag, "@ Leaderboard now:: score: $userScore. level: $userLevel")
 
-        if (userScore > -1 && userLevel > -1) { // triggered by a game
+        if (userScore != null && userLevel > -1) { // triggered by a game
             val scoreRef = userRef.child("Scores")
                 .child(levelStr)
                 .child(scoreId!!)

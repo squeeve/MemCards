@@ -36,7 +36,7 @@ class Game(private val context: Context, private val gridSize: Int, val layout: 
     private lateinit var db: DatabaseReference
     private lateinit var gameRef: DatabaseReference
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
-    private var gameStateFile = auth.currentUser!!.uid + "-gameState.json"
+    private var gameStateFile = auth.currentUser!!.uid + ".gameState.json"
 
     private fun setUpGameCards(gridSize: Int): MutableList<Card> {
         // 1. Pick out set of unique card faces, double them and shuffle them
@@ -209,7 +209,6 @@ class Game(private val context: Context, private val gridSize: Int, val layout: 
             initializeFirebase()
             val currState: Map<String,Any>? = fh.readFromFile(gameStateFile)
             if (currState != null) {
-                Log.d(tag, "Attempting to redraw after orientation. Did it work? (${currState.keys})")
                 for ((key, value) in currState) {
                     when (key) {
                         "tries" -> tries = (value as Number).toInt()

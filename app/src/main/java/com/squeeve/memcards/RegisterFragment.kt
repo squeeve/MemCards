@@ -48,9 +48,9 @@ class RegisterFragment : Fragment() {
     private fun saveUserToDB(username: String, email: String) {
         val userReference: DatabaseReference = FirebaseDatabase.getInstance().getReference("Users")
         currentUser.let {
-            val newUser = User(
+            val newUser = User(requireContext(),
                 username = username,
-                email = email,
+                email = email
             )
             userReference.child(currentUser.uid).setValue(newUser)
                 .addOnSuccessListener {
@@ -64,7 +64,10 @@ class RegisterFragment : Fragment() {
         // Create the app internal file if it doesn't exist.
         val userJson = mapOf(
             "username" to username,
-            "email" to email
+            "email" to email,
+            "profilePicture" to null,
+            "scoreHistory" to null
+
         )
         Log.d("PrefFile", "Creating app's user pref file. Check ${requireContext().filesDir}")
         val fh = FileHelper(requireContext())

@@ -107,7 +107,7 @@ class MainActivity2 : AppCompatActivity(), NavigationView.OnNavigationItemSelect
         )
         Log.d("PrefFile", "Creating app's user pref file. Check ${this.filesDir}")
         val fh = FileHelper(this@MainActivity2)
-        fh.saveToFile(userJson, getString(R.string.app_domain)+".$uid")
+        fh.saveToFile(userJson, getString(R.string.app_domain)+".$uid", overwrite = false)
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {

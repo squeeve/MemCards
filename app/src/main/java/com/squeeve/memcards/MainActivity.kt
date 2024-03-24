@@ -1,6 +1,7 @@
 package com.squeeve.memcards
 
 import android.content.Intent
+import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.CountDownTimer
 import android.util.Log
@@ -16,7 +17,7 @@ import com.bumptech.glide.Glide
 
 class MainActivity : AppCompatActivity() {
     private var tag: String = "FirebaseAuthActivity"
-
+    private lateinit var mediaPlayer: MediaPlayer
     private lateinit var auth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
