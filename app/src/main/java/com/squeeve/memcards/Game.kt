@@ -12,14 +12,15 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 
-/* game levels */
-internal const val EASY = 2
-internal const val MED = 4
-internal const val HARD = 6
-internal val LEVELS = mapOf("EASY" to EASY, "MED" to MED, "HARD" to HARD)
-internal val LEVELSTOSTRING = mapOf(EASY to "EASY", MED to "MEDIUM", HARD to "HARD")
-
 class Game(private val context: Context, private val gridSize: Int, val layout: GridLayout) {
+    companion object {
+        const val EASY = 2
+        const val MED = 4
+        const val HARD = 6
+        val LEVELS = mapOf("EASY" to EASY, "MED" to MED, "HARD" to HARD)
+        val LEVELSTOSTRING = mapOf(EASY to "EASY", MED to "MEDIUM", HARD to "HARD")
+    }
+
     private val tag = "Game"
     private val fh = FileHelper(context)
 
@@ -156,6 +157,7 @@ class Game(private val context: Context, private val gridSize: Int, val layout: 
     }
 
     private fun saveGameState() {
+        // Saves a play-by-play of the game to user's file in internal storage
         val cardsArrayMap = cardsArray.map { card ->
             mapOf(
                 "value" to card.value,

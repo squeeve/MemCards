@@ -5,9 +5,13 @@
     tools:showIn="navigation_view">
 
     <item
-        android:id="@+id/menu_game"
+        android:id="@+id/menu_home"
         android:icon="@drawable/double_arrow_right_24"
-        android:title="Play a game"/>
+        android:title="New Game"/>
+    <item
+        android:id="@+id/menu_game"
+        android:icon="@drawable/baseline_grid"
+        android:title="Random Game"/>
     <item
         android:id="@+id/menu_leaderboard"
         android:enabled="true"

@@ -54,4 +54,8 @@
     <string name="userstats">UserStats</string>
     <string name="user_stats">User\'s statistics for this game</string>
     <string name="user_profile_picture">User profile picture</string>
+    <string name="timestamp">timestamp</string>
+    <string name="you_scored_x_at_level_y">You scored: %1$s at level %2$s</string>
+    <string name="time">Time: %1$s</string>
+    <string name="easy">Easy</string>
 </resources>

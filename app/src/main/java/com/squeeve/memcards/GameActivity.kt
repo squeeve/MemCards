@@ -9,8 +9,14 @@ import android.widget.Button
 import android.widget.GridLayout
 import android.widget.TextView
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.GenericTypeIndicator
+import com.google.firebase.database.MutableData
+import com.google.firebase.database.Transaction
+import com.squeeve.memcards.Game.Companion.LEVELSTOSTRING
 //import com.google.firebase.database.ServerValue
 //import java.util.Date
 
@@ -95,20 +101,10 @@ class GameActivity : AppCompatActivity(), Game.OnGameEndListener {
                                                 .child(levelStr)
         val newScoreRef = userScoresRef.push()
         val scoreData = mapOf(
-            "score" to score.score as Int,
-            "timestamp" to score.timestamp as Long
+            "score" to score.score,
+            "timestamp" to score.timestamp
         )
         newScoreRef.setValue(scoreData)
-        /*
-        val userEntry = LeaderboardEntry(
-            level = levelStr,
-            score = score,
-            timeStamp = Date(scoreData.getValue("timestamp")),
-            //username = ,
-            userUid = auth.currentUser!!.uid.toString(),
-            scoreId = newScoreRef.key!!.toString()
-        ) */
-
         return newScoreRef.key!!
     }
 
@@ -126,25 +122,81 @@ class GameActivity : AppCompatActivity(), Game.OnGameEndListener {
             val user = User(this, auth.currentUser!!.uid)
             Log.d(tag, "User object created: ${user.username}. Scores: ${user.scoreHistory}")
             val scorePoint = Score(score, System.currentTimeMillis() / 1000, level)
+
             val scoreList = user.getScoresForLevel(level).toMutableList()
             scoreList.add(scorePoint)
             user.scoreHistory = scoreList
             user.writeUserPrefs()
-
             val key = saveUserStatsToFirebase(scorePoint)
+            checkLeaderboard(scorePoint, user.username, key)
 
             Log.d(tag, "Sending to leaderboard... score: $score. level: $level")
-            val leaderboardActivity = Intent(this, LeaderboardActivity::class.java)
-            leaderboardActivity.putExtra("thisScore", scorePoint)
-            leaderboardActivity.putExtra("thisLevel", level)
+            val leaderboardActivity = Intent(this, LeaderboardActivity2::class.java)
+            leaderboardActivity.putExtra("scoreVal", scorePoint.score)
+            leaderboardActivity.putExtra("scoreTimestamp", scorePoint.timestamp)
+            leaderboardActivity.putExtra("scoreLevel", level)
             leaderboardActivity.putExtra("scoreId", key)
             startActivity(leaderboardActivity)
-            finish()
         } catch (e: Exception) {
             Log.e(tag, "Error creating user object: $e")
             authMan.startLoginActivity()
             finish()
         }
+    }
+
+    private fun checkLeaderboard(score: Score, username: String, key: String) {
+        val leaderRef = db.child("Leaderboard").child(levelStr)
+        val newEntry = LeaderboardEntry(levelStr, score, username, auth.currentUser!!.uid, key)
+        leaderRef.runTransaction(object : Transaction.Handler {
+            override fun doTransaction(mutableData: MutableData): Transaction.Result {
+                Log.d(tag, "Leaderboard: doTransaction called.")
+                val leaderboard = mutableData.getValue(object : GenericTypeIndicator<List<ScoreNode>>(){}) ?: listOf()
+                var sortedLeaderboard = mutableListOf<LeaderboardEntry>()
+                if (leaderboard.isEmpty()) {
+                    // add user's score as a LeaderboardEntry into the leaderboard,
+                    // creating the leaderboard if it doesn't exist
+                    Log.d(tag, "Leaderboard: adding new entry, since len: ${leaderboard.size}.")
+                    mutableData.value = listOf(ScoreNode(0, newEntry))
+                } else {
+                    Log.d(tag, "Leaderboard:: original: $leaderboard")
+                    var successfulAdd = false
+                    sortedLeaderboard = mutableListOf<LeaderboardEntry>()
+                    for (i in 0 until leaderboard.size) {
+                        if (leaderboard[i].entry?.score == null) {
+                            Log.d(tag, "Leaderboard: entry @ $i was null at score.")
+                            continue
+                        } else if (leaderboard[i].entry!!.score >= score) {
+                            sortedLeaderboard.add(leaderboard[i].entry!!)
+                        } else {
+                            sortedLeaderboard.add(newEntry)
+                            successfulAdd = true
+                        }
+                    }
+                    if (!successfulAdd) {
+                        if (sortedLeaderboard.size < 10) {
+                            sortedLeaderboard.add(newEntry) // successfulAdd = true
+                        } else {
+                            Log.d(tag, "Leaderboard: New entry didn't make it.")
+                            return Transaction.abort()
+                        }
+                    }
+                }
+                val finalLeaderboard = sortedLeaderboard.mapIndexed { rank, entry ->
+                    ScoreNode(rank, entry)
+                }
+                mutableData.value = finalLeaderboard.take(10)
+                return Transaction.success(mutableData)
+            }
+
+            override fun onComplete(error: DatabaseError?, committed: Boolean, currentData: DataSnapshot?) {
+                if (committed) {
+                    Log.d(tag, "Leaderboard-add successful: committed = $committed")
+                } else {
+                    Log.d(tag, "Leaderboard-add failed: $error")
+                }
+            }
+        })
+
     }
 
     private fun showConfirmationDialog(quit: Boolean = true) {

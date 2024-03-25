@@ -1,0 +1,202 @@
+package com.squeeve.memcards
+
+import android.media.MediaPlayer
+import android.os.Bundle
+import android.util.Log
+import android.widget.TextView
+import android.widget.Toast
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
+import com.google.firebase.FirebaseApp
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.MutableData
+import com.google.firebase.database.Transaction
+import com.google.firebase.database.ValueEventListener
+import com.squeeve.memcards.Game.Companion.LEVELSTOSTRING
+import java.util.Date
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.launch
+
+
+data class LeaderboardEntry (
+    var level: String = "",
+    var score: Score = Score(),
+    var username: String = "",
+    var userUid: String = "",
+    var scoreId: String = ""
+)
+
+// ScoreNode is basically a wrapper for LeaderboardEntry, which contains more information.
+// The nodes are indexed by scoreId in Firebase.
+data class ScoreNode(
+    val rank: Int = 0,
+    val entry: LeaderboardEntry? = null
+)
+
+class LeaderboardActivity : BaseActivity() {
+    private val tag = "LeaderboardActivity"
+
+    private lateinit var db: DatabaseReference
+    private lateinit var userRef: DatabaseReference
+    private lateinit var leaderRef: DatabaseReference
+    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
+    private lateinit var username: String
+    private lateinit var adapter: ScoreBoxAdapter
+    private lateinit var mp: MediaPlayer
+
+    override fun getLayoutId(): Int {
+        return R.layout.activity_leaderboard
+    }
+
+    private fun initializeFirebase() {
+        db = FirebaseDatabase.getInstance().reference
+        userRef = db.child("Users").child(auth.currentUser!!.uid)
+        leaderRef = db.child("Leaderboard")
+        FirebaseApp.initializeApp(this)
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        val userUid = currentUser!!.uid
+
+        initializeFirebase()
+
+        val bundle = this.intent.extras
+        val userScore = bundle?.get("thisScore") as? Score
+        val userLevel = bundle?.getInt("thisLevel") ?: -1
+        val levelStr = if (userLevel in LEVELSTOSTRING.keys) {
+                    LEVELSTOSTRING.getValue(userLevel)
+                } else { null }
+        val scoreId = intent.getStringExtra("scoreId")
+
+        val you = User(this, userUid)
+        username = you.username
+        // get profile picture from Firebase Storage
+        val profilePic = you.profilePicture.takeIf { it != "" } ?: R.drawable.poker_face
+        Log.d(tag, "User: $username. Checked user instantiated!")
+
+        if (userScore != null) {
+            Log.d(tag, "@ Leaderboard:: score: ${userScore.score}. time: ${userScore.timestamp}")
+            // set up the User's score view...
+            val profilePicView =
+                findViewById<de.hdodenhof.circleimageview.CircleImageView>(R.id.profile_image)
+            Glide.with(this@LeaderboardActivity).load(profilePic).into(profilePicView)
+            val userStatsView = findViewById<TextView>(R.id.userStatsText)
+            val userNameView = findViewById<TextView>(R.id.userNameText)
+            val timestampView = findViewById<TextView>(R.id.timestampText)
+            userNameView.text = username
+            userStatsView.text =
+                getString(R.string.you_scored_x_at_level_y, userScore.score.toString(), levelStr)
+            timestampView.text = getString(R.string.time, Date(userScore.timestamp))
+
+            lifecycleScope.launch {
+                val entry = LeaderboardEntry(levelStr!!, userScore, username, userUid, scoreId!!)
+                val added = addEntryToLeaderboard(entry).await()
+                if (added) {
+                    Toast.makeText(
+                        this@LeaderboardActivity,
+                        "Congratulations! You made it to the leaderboard!",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    mp = MediaPlayer.create(this@LeaderboardActivity, R.raw.success_trumpets)
+                    mp.start()
+                }
+                val scoresList = getLeaderScores(levelStr) ?: listOf()
+
+                // the leaderboard's RecyclerView has to show up, regardless.
+                val recyclerView = findViewById<RecyclerView>(R.id.recycler_view)
+                recyclerView.layoutManager = LinearLayoutManager(this@LeaderboardActivity)
+                adapter = ScoreBoxAdapter(scoresList)
+                recyclerView.adapter = adapter
+            }
+        }
+    }
+
+    private fun addEntryToLeaderboard(entry: LeaderboardEntry): Deferred<Boolean> {
+        val levelRef = leaderRef.child(entry.level)
+        val result = CompletableDeferred<Boolean>()
+        var deserving = 0
+        levelRef.runTransaction(object : Transaction.Handler {
+            override fun doTransaction(mutableData: MutableData): Transaction.Result {
+                val scoreNodes: MutableList<ScoreNode> = mutableListOf()
+                Log.d("addEntry", "Size of mutableData @ ${entry.level}: ${mutableData.childrenCount}")
+                mutableData.children.forEach {
+                    val scoreNode = it.getValue(ScoreNode::class.java)
+                    scoreNode?.let {node ->
+                        scoreNodes.add(node)
+                        if ((node.entry?.score ?: Score()) < entry.score) {
+                            deserving++
+                        }
+                    }
+                }
+                if (deserving > 0 || scoreNodes.size < 10) {
+                    deserving++ // toggle deserving to at least a positive number.
+                    scoreNodes.add(ScoreNode(entry.scoreId, entry))
+                    scoreNodes.sortWith { a, b ->
+                        val scoreA = a.entry?.score ?: Score()
+                        val scoreB = b.entry?.score ?: Score()
+                        scoreA.compareTo(scoreB)
+                    }
+                    val list = if (scoreNodes.size > 10) scoreNodes.take(10) else scoreNodes
+                    list.forEach {
+                        levelRef.child(it.scoreId).setValue(it.entry)
+                    }
+                    return Transaction.success(mutableData)
+                }
+                return Transaction.abort()
+            }
+
+            override fun onComplete(
+                error: DatabaseError?,
+                committed: Boolean,
+                currentData: DataSnapshot?
+            ) {
+                Log.d(tag, "postTransaction:onComplete: $error")
+                result.complete(deserving > 0 && committed)
+            }
+        })
+        return result
+    }
+
+    private fun getLeaderScores(level: String?): List<LeaderboardEntry>? {
+        val scoreNodes = mutableListOf<ScoreNode>()
+        if (level.isNullOrEmpty()) {
+            // TODO: get all levels if level isn't specified.
+            return null
+        }
+        val levelRef = db.child("Leaderboard").child(level)
+        levelRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if (snapshot.exists() && snapshot.childrenCount > 0) {
+                    for (entrySnapshot in snapshot.children) {
+                        val entry = entrySnapshot.getValue(ScoreNode::class.java)
+                        entry?.let { scoreNodes.add(it) }
+                    }
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                Log.e(tag, "Error getting leaderboard for $level: ${error.message}")
+                Toast.makeText(
+                    this@LeaderboardActivity,
+                    "Unknown error getting leaderboard. ¯\\_(ツ)_/¯",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        })
+        return scoreNodes.mapNotNull { it.entry }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        mp.release()
+    }
+
+}

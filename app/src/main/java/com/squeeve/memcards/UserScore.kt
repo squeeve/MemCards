@@ -3,18 +3,34 @@ package com.squeeve.memcards
 import android.content.Context
 import android.util.Log
 import androidx.core.content.ContextCompat.getString
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
 import java.io.Serializable
 
 
-data class Score(val score: Int, val timestamp: Long, val level: Int) : Serializable, Comparable<Score> {
+data class Score(
+    val score: Int = -1,
+    val timestamp: Long = System.currentTimeMillis(),
+    val level: Int = 0
+) : Serializable, Comparable<Score> {
+
     override fun compareTo(other: Score): Int {
         // sort by score, then by timestamp
         // return negative if this < other, 0 if equal, positive if this > other
         return if (this.score - other.score != 0) {
             this.score - other.score
         } else {
-            (this.timestamp - other.timestamp).toInt()
+            // if this is the newer score, it should compare smaller than the other
+            (this.timestamp - other.timestamp).toInt() * -1
         }
+    }
+
+    fun toJson(): String {
+        return """{
+            "score": $score,
+            "timestamp": $timestamp,
+            "level": $level
+        }""".trimIndent()
     }
 }
 
@@ -24,10 +40,11 @@ class User(
     var email: String = "",
     var profilePicture: String = "",
     var scoreHistory: MutableList<Score> = mutableListOf(),
-    private var uid: String? = null
+    var uid: String? = null
 ) {
     private lateinit var userPrefFile: String
     private lateinit var gameStateFile: String
+    private var userRef: DatabaseReference?
 
     init {
         if (this.scoreHistory.isEmpty()) {
@@ -37,10 +54,22 @@ class User(
             userPrefFile = getString(context, R.string.app_domain) + ".$uid"
             gameStateFile = userPrefFile + "gameState.json"
         }
+        userRef = if (uid != null) {
+            FirebaseDatabase.getInstance().reference.child("Users").child(uid!!)
+        } else { null }
     }
 
     fun getScoresForLevel(level: Int): List<Score> {
         return this.scoreHistory.filter { it.level == level }
+    }
+
+    override fun toString(): String {
+        return """{
+             \"username\": \"$username\",
+             \"email\": \"$email\",
+             \"profilePicture\": \"$profilePicture\",
+             \"scoreHistory\": ${scoreHistory.map { it.toJson() }} 
+        }""".trimIndent()
     }
 
     constructor(context: Context, uid: String): this(context, "","","", mutableListOf(),uid) {
@@ -58,6 +87,7 @@ class User(
                     "email" -> email = value.toString()
                     "profilePicture" -> profilePicture = value.toString()
                     "scoreHistory" -> {
+                        @Suppress("UNCHECKED_CAST")
                         val scoreSheet = value as? List<Map<String,Any?>>
                         Log.d("userHist", "Read scoreHistory: $scoreSheet")
                         if (scoreSheet != null) {
@@ -70,17 +100,24 @@ class User(
                             }.toMutableList()
                             Log.d("userHist", "Saved scoreHistory: $scoreHistory")
                         } else {
+                            Log.d("userHist", "scoreSheet was null")
                             scoreHistory = mutableListOf()
                         }
                     }
                 }
             }
         } else {
-            throw Exception("User pref file was unuseable.")
+            throw Exception("User pref file was unusable.")
+        }
+        userRef = try {
+            FirebaseDatabase.getInstance().reference.child("Users").child(uid)
+        } catch (e: Exception) {
+            Log.e("User", "Failed to get userRef: $e")
+            null
         }
     }
 
-    fun toMap(): Map<String, Any?> {
+    private fun toMap(): Map<String, Any?> {
         val r= mapOf(
             "username" to this.username,
             "email" to this.email,
@@ -100,6 +137,10 @@ class User(
     fun writeUserPrefs(overwrite: Boolean = true) {
         val fh = FileHelper(context)
         fh.saveToFile(this.toMap(), userPrefFile, overwrite)
+        // write/update Firebase
+        if (userRef != null) {
+            userRef!!.updateChildren(this.toMap())
+        }
     }
 
 }

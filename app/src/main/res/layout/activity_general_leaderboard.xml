@@ -13,7 +13,7 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/topToolbar"
@@ -24,65 +24,56 @@
             app:layout_constraintTop_toTopOf="parent"
             app:navigationIcon="@drawable/baseline_menu_24"
             app:popupTheme="@style/Theme.Design.Light"
-            app:title="@string/app_name_fun" />
+            app:title="@string/app_name_fun"
+            tools:layout_editor_absoluteX="57dp" />
 
         <LinearLayout
-            android:id="@+id/youBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:layout_constraintTop_toBottomOf="@id/topToolbar"
-            android:background="@drawable/rounded_corners"
-            android:layout_margin="10dp"
-            android:orientation="horizontal">
-            <de.hdodenhof.circleimageview.CircleImageView
-                android:id="@+id/profile_image"
-                android:layout_width="70dp"
-                android:layout_height="70dp"
-                android:src="@drawable/poker_face"
-                android:layout_margin="15dp"
-                app:civ_border_width="2dp"
-                app:civ_border_color="#FF000000"/>
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical"
-                android:gravity="center_vertical">
-            <TextView
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:id="@+id/buttonPanel"
+            app:layout_constraintTop_toBottomOf="@id/topToolbar">
+            <Button
+                android:id="@+id/easyBtn"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/userNameText"
-                android:text="@string/username"
-                android:textStyle="bold"
-                android:contentDescription="@string/username"
-                android:textSize="20sp"/>
-            <TextView
+                android:layout_marginRight="5dp"
+                style="@style/Widget.AppCompat.Button.Borderless"
+                android:text="EASY"
+                android:textColor="@color/white"
+                android:backgroundTint="#43F0D319"/>
+
+            <Button
+                android:id="@+id/medBtn"
+                style="@style/Widget.AppCompat.Button.Borderless"
+                android:layout_marginRight="5dp"
+                android:layout_marginLeft="5dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:layout_constraintTop_toBottomOf="@id/topToolbar"
-                android:id="@+id/userStatsText"
-                android:textSize="15sp"
-                android:text="@string/userstats"
-                android:contentDescription="@string/user_stats"/>
-            <TextView
+                android:backgroundTint="#43F0D319"
+                android:text="MEDIUM"
+                android:textColor="@color/white" />
+
+            <Button
+                android:id="@+id/hardBtn"
+                style="@style/Widget.AppCompat.Button.Borderless"
+                android:layout_marginLeft="5dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:contentDescription="@string/timestamp"
-                app:layout_constraintTop_toBottomOf="@id/userStatsText"
-                android:textSize="11sp"
-                android:id="@+id/timestampText"/>
-            </LinearLayout>
+                android:backgroundTint="#43F0D319"
+                android:text="HARD"
+                android:textColor="@color/white" />
         </LinearLayout>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycler_view"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_margin="10dp"
-            android:padding="5dp"
-            android:scrollbars="vertical"
-            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-            app:layout_constraintTop_toBottomOf="@id/youBox"
-            app:layout_constraintBottom_toBottomOf="parent"/>
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/buttonPanel"
+            app:layout_constraintBottom_toBottomOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <com.google.android.material.navigation.NavigationView
