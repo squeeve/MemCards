@@ -29,8 +29,8 @@ class ScoreBoxAdapter(
         val profileRef = storageRef.child("images/${data.userUid}")
 
         if (forProfilePage) {
-            holder.usernameView.isVisible = true
-            holder.profileImageView.isVisible = true
+            holder.usernameView.isVisible = false
+            holder.profileImageView.isVisible = false
         } else {
             holder.usernameView.text = data.username
             profileRef.downloadUrl.addOnSuccessListener { url ->

@@ -26,6 +26,7 @@ import androidx.activity.result.ActivityResultLauncher
 import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.activity.result.contract.ActivityResultContracts
+import com.bumptech.glide.Glide
 import com.google.android.gms.tasks.Continuation
 import com.google.android.gms.tasks.Task
 import com.google.firebase.storage.FirebaseStorage
@@ -139,6 +140,7 @@ abstract class BaseActivity : AppCompatActivity(), NavigationView.OnNavigationIt
         // for profile pictures...
         storage = FirebaseStorage.getInstance()
         storageReference = storage.reference
+        val you = User(this, currentUser!!.uid)
 
         drawerLayout = findViewById(R.id.drawer_layout)
         navigationView = findViewById(R.id.drawer_view)
@@ -154,7 +156,17 @@ abstract class BaseActivity : AppCompatActivity(), NavigationView.OnNavigationIt
         Log.d(tag, "NavigationView's header count: ${navigationView.headerCount}")
         val headerView = navigationView.getHeaderView(0)
         val nameTextView = headerView.findViewById<TextView>(R.id.profile_name)
-        profileImageView = headerView.findViewById<ImageView>(R.id.profile_image)
+        profileImageView = headerView.findViewById(R.id.profile_image)
+        if (you.profilePicture.isNotBlank()) {
+            val profileRef = storageReference.child("images/${you.uid}")
+            profileRef.downloadUrl.addOnSuccessListener { url ->
+                Glide.with(this).load(url.toString()).circleCrop().into(profileImageView)
+            }.addOnFailureListener {
+                Glide.with(this).load(R.drawable.poker_face).circleCrop().into(profileImageView)
+            }
+        } else {
+            Glide.with(this).load(R.drawable.poker_face).circleCrop().into(profileImageView)
+        }
         profileImageView.setOnClickListener {
             chooseImage()
         }

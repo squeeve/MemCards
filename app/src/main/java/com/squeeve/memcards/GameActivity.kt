@@ -137,6 +137,7 @@ class GameActivity : AppCompatActivity(), Game.OnGameEndListener {
             leaderboardActivity.putExtra("scoreLevel", level)
             leaderboardActivity.putExtra("scoreId", key)
             startActivity(leaderboardActivity)
+            finish()
         } catch (e: Exception) {
             Log.e(tag, "Error creating user object: $e")
             authMan.startLoginActivity()
