@@ -1,3 +1,5 @@
+@file:Suppress("CanBeVal")
+
 package com.squeeve.memcards
 
 import android.os.Bundle

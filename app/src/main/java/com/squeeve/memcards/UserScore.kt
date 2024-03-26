@@ -77,9 +77,16 @@ class User(
         gameStateFile = getString(context, R.string.app_domain) + ".$uid.gameState.json"
         val fh = FileHelper(context)
         if (!fh.getInternalFile(userPrefFile).exists()) {
-            // TODO: This actually happens when a user starts using a new device.
-            // It's possible to use the UID to rebuild the local file.
+            // TODO: So actually, this happens when a user starts using a new device.
             throw Exception("User pref file does not exist.")
+            /* // THIS IS MY HACK TO GET PAST THE PROBLEM FOR NOW.
+            val prefs = mapOf(
+                "username" to "lavaya",
+                "email" to "holymadam3@gmail.com",
+                "profilePicture" to "",
+                "scoreHistory" to {}
+            )
+            fh.saveToFile(prefs, userPrefFile) */
         }
         val currUser = fh.readFromFile<Map<String,Any>?>(userPrefFile)
         if (currUser != null) {

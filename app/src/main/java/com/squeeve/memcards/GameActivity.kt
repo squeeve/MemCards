@@ -128,6 +128,7 @@ class GameActivity : AppCompatActivity(), Game.OnGameEndListener {
             user.scoreHistory = scoreList
             user.writeUserPrefs()
             val key = saveUserStatsToFirebase(scorePoint)
+
             checkLeaderboard(scorePoint, user.username, key)
 
             Log.d(tag, "Sending to leaderboard... score: $score. level: $level")
@@ -148,10 +149,14 @@ class GameActivity : AppCompatActivity(), Game.OnGameEndListener {
     private fun checkLeaderboard(score: Score, username: String, key: String) {
         val leaderRef = db.child("Leaderboard").child(levelStr)
         val newEntry = LeaderboardEntry(levelStr, score, username, auth.currentUser!!.uid, key)
+
+        // HACKY: Print these out so I can manually add to realtime db and check other things
+        Log.d(tag, "Leaderboard::HACKY newEntry: $newEntry")
+
         leaderRef.runTransaction(object : Transaction.Handler {
             override fun doTransaction(mutableData: MutableData): Transaction.Result {
                 Log.d(tag, "Leaderboard: doTransaction called.")
-                val leaderboard = mutableData.getValue(object : GenericTypeIndicator<List<ScoreNode>>(){}) ?: listOf()
+                val leaderboard = mutableData.getValue(object : GenericTypeIndicator<Hash<ScoreNode>>(){}) ?: listOf()
                 var sortedLeaderboard = mutableListOf<LeaderboardEntry>()
                 if (leaderboard.isEmpty()) {
                     // add user's score as a LeaderboardEntry into the leaderboard,
